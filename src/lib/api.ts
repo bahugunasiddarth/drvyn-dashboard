@@ -5,10 +5,10 @@ import { Booking, InsuranceRequest, GeneralRequest } from './types';
 const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
     // Client-side: check if we have a local backend running
-    return process.env.NEXT_PUBLIC_API_BASE_URL || 'https://drvyn-backend.onrender.com';
+    return process.env.NEXT_PUBLIC_API_BASE_URL || 'https://drvyn-backend.vercel.app';
   }
   // Server-side: use production URL
-  return 'https://drvyn-backend.onrender.com';
+  return 'https://drvyn-backend.vercel.app';
 };
 
 const API_BASE_URL = getApiBaseUrl();

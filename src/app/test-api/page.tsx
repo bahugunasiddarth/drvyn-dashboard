@@ -7,7 +7,7 @@ export default function TestApiPage() {
 
   useEffect(() => {
     // Test the API URL configuration
-    const url = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://drvyn-backend.onrender.com';
+    const url = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://drvyn-backend.vercel.app';
     setApiUrl(url);
     
     console.log('Test page - API URL:', url);
