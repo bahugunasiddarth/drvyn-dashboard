@@ -37,17 +37,16 @@ export default function BookingsDataTable({ data: initialData }: DataTableProps)
   const [data, setData] = React.useState<Booking[]>(initialData || []);
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<BookingStatus | "all">("all");
-  const [isLoading, setIsLoading] = React.useState(false); // Default to false since we pass initialData
+  const [isLoading, setIsLoading] = React.useState(false); 
 
   const columns = bookingsColumns;
 
   // Fetch data from backend API
   React.useEffect(() => {
-    // Skip initial fetch if we have data, unless filter changes
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Use the centralized API client
+        // Uses centralized API client with correct ENV variable
         const response = await bookingsApi.getAll(
           statusFilter !== "all" ? statusFilter : undefined
         );
@@ -153,8 +152,6 @@ export default function BookingsDataTable({ data: initialData }: DataTableProps)
   const totalRows = table.getFilteredRowModel().rows.length;
   const currentPageRows = table.getRowModel().rows.length;
   const pageCount = table.getPageCount();
-
-  // Calculate item range
   const itemStart = pageIndex * pageSize + 1;
   const itemEnd = itemStart + currentPageRows - 1;
 
