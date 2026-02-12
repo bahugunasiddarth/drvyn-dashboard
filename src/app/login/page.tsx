@@ -1,93 +1,101 @@
-"use client"
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Car } from 'lucide-react';
-import { authApi, setAuthToken } from '@/lib/api';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { authApi, setAuthToken, getAuthToken } from "@/lib/api";
 
 export default function LoginPage() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  
-  async function handleLogin() {
-    setError('');
-    setLoading(true);
-    
-    try {
-      console.log('🔐 Attempting login with backend API...');
-      const response = await authApi.login(username, password);
-      
-      if (!response.success || !response.data) {
-        throw new Error(response.error || 'Login failed');
-      }
-      
-      const token = response.data.access_token;
-      if (!token) {
-        throw new Error('No token returned from server');
-      }
-      
-      console.log('✅ Login successful, token received');
-      setAuthToken(token);
-      localStorage.setItem('isAuthenticated', 'true');
-      router.push('/dashboard');
-    } catch (e: any) {
-      console.error('❌ Login failed:', e);
-      setError(e?.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
+  const { toast } = useToast();
+
+  // Auto-login check
+  useEffect(() => {
+    const token = getAuthToken();
+    if (token) {
+      router.push("/dashboard");
     }
-  }
+  }, [router]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const response = await authApi.login(username, password);
+
+      if (response.success && response.data) {
+        setAuthToken(response.data.access_token);
+        toast({
+          title: "Login successful",
+          description: "Welcome back!",
+        });
+        router.push("/dashboard");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: response.error || "Invalid credentials",
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-secondary/40">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-            <div className="flex items-center gap-2 justify-center mb-4">
-              <div className="p-3 bg-primary/10 rounded-md">
-                <Car className="h-6 w-6 text-primary"/>
-              </div>
-              <h1 className="text-2xl font-bold text-primary">Drvyn</h1>
-            </div>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>Enter your credentials to access your dashboard.</CardDescription>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
+      <Card className="w-[350px]">
+        <CardHeader>
+          <CardTitle>Admin Login</CardTitle>
+          <CardDescription>Enter your credentials to access the dashboard.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="admin"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
+        <form onSubmit={handleLogin}>
+          <CardContent>
+            <div className="grid w-full items-center gap-4">
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="username">Username</Label>
+                <Input 
+                  id="username" 
+                  placeholder="admin" 
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="password">Password</Label>
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                required 
-                placeholder="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button onClick={handleLogin} type="button" className="w-full" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline" type="button" onClick={() => {setUsername(''); setPassword('')}}>Clear</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
             </Button>
-          </div>
-        </CardContent>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );

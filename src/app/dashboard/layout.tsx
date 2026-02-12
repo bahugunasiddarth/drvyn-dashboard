@@ -1,84 +1,46 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button";
-import { Sidebar, SidebarContent, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { LayoutDashboard, CalendarDays, ShieldCheck, MessageSquare, Car, LogOut, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getAuthToken } from "@/lib/api";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar"; 
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const pathname = usePathname();
   const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  React.useEffect(() => {
-    const token = localStorage.getItem('authToken');
+  useEffect(() => {
+    const token = getAuthToken();
     if (!token) {
-      router.replace('/login');
+      router.push("/login");
+    } else {
+      setIsAuthenticated(true);
     }
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('authToken');
-    router.replace('/login');
-  };
-
-  const menuItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/customers", label: "Customers", icon: Users },
-    { href: "/dashboard/bookings", label: "Bookings", icon: CalendarDays },
-    { href: "/dashboard/insurance-requests", label: "Insurance", icon: ShieldCheck },
-    { href: "/dashboard/requests", label: "Requests", icon: MessageSquare },
-  ]
+  if (!isAuthenticated) {
+    return null; 
+  }
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarContent>
-          <SidebarHeader>
-            <div className="flex items-center gap-2 p-2">
-              <Button variant="ghost" size="icon" className="shrink-0 bg-primary/10 text-primary hover:bg-primary/20">
-                <Car className="h-5 w-5"/>
-              </Button>
-              <div className="flex flex-col">
-                <h2 className="text-lg font-semibold tracking-tight text-primary">Drvyn</h2>
-              </div>
-            </div>
-          </SidebarHeader>
-          <SidebarMenu>
-            {menuItems.map((item) => (
-               <SidebarMenuItem key={item.href}>
-                 <SidebarMenuButton asChild isActive={pathname === item.href} tooltip={item.label}>
-                   <Link href={item.href}>
-                      <item.icon />
-                      <span>{item.label}</span>
-                   </Link>
-                 </SidebarMenuButton>
-               </SidebarMenuItem>
-            ))}
-            <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleLogout} tooltip="Logout">
-                    <LogOut />
-                    <span>Logout</span>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-      </Sidebar>
+      {/* This component is now found in src/components/app-sidebar.tsx */}
+      <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 md:hidden">
-          <SidebarTrigger />
-          <h1 className="text-lg font-semibold text-primary">Drvyn</h1>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="h-4 w-px bg-border/60 mx-2" />
+          <span className="font-semibold text-lg">Admin Dashboard</span>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-secondary/40">
-            {children}
-        </main>
+        <div className="flex-1 space-y-4 p-4 pt-6">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

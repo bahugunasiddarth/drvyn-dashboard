@@ -17,7 +17,6 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
-// Auth token management
 let authToken: string | null = null;
 
 export const setAuthToken = (token: string) => {
@@ -89,7 +88,6 @@ async function apiRequest<T>(
   }
 }
 
-// Auth API
 export const authApi = {
   login: (username: string, password: string) => 
     apiRequest<{ access_token: string; token_type: string }>('/admin/login', {
@@ -98,7 +96,6 @@ export const authApi = {
     }),
 };
 
-// Bookings API
 export const bookingsApi = {
   getAll: (statusFilter?: string, skip: number = 0, limit: number = 50) => {
     const params = new URLSearchParams();
@@ -115,7 +112,6 @@ export const bookingsApi = {
     }),
 };
 
-// Insurance Requests API
 export const insuranceRequestsApi = {
   getAll: (statusFilter?: string, skip: number = 0, limit: number = 50) => {
     const params = new URLSearchParams();
@@ -132,7 +128,6 @@ export const insuranceRequestsApi = {
     }),
 };
 
-// General Requests API
 export const generalRequestsApi = {
   getAll: (skip: number = 0, limit: number = 50) => {
     const params = new URLSearchParams();
@@ -141,7 +136,6 @@ export const generalRequestsApi = {
     
     return apiRequest<{ requests: GeneralRequest[]; total: number }>(`/admin/car-requests?${params}`);
   },
-  // ADDED: Missing updateStatus function
   updateStatus: (requestId: string, status: string) =>
     apiRequest(`/admin/car-requests/${requestId}/status`, {
       method: 'PUT',
@@ -149,7 +143,11 @@ export const generalRequestsApi = {
     }),
 };
 
-// Dashboard API
+export const customersApi = {
+  getAll: () => apiRequest<{ customers: any[] }>('/admin/customers'),
+};
+// --------------------------
+
 export const dashboardApi = {
   getStats: () => 
     apiRequest<{
